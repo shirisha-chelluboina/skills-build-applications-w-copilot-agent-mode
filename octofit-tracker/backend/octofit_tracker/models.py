@@ -1,6 +1,10 @@
 from django.db import models
 
+
+import uuid
+
 class Team(models.Model):
+    id = models.CharField(primary_key=True, max_length=24, default=lambda: str(uuid.uuid4().hex), editable=False)
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
 
@@ -8,6 +12,7 @@ class Team(models.Model):
         return self.name
 
 class UserProfile(models.Model):
+    id = models.CharField(primary_key=True, max_length=24, default=lambda: str(uuid.uuid4().hex), editable=False)
     name = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
     team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='members')
@@ -16,6 +21,7 @@ class UserProfile(models.Model):
         return self.name
 
 class Activity(models.Model):
+    id = models.CharField(primary_key=True, max_length=24, default=lambda: str(uuid.uuid4().hex), editable=False)
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='activities')
     activity = models.CharField(max_length=100)
     duration = models.PositiveIntegerField()
@@ -24,6 +30,7 @@ class Activity(models.Model):
         return f"{self.user.name} - {self.activity}"
 
 class Leaderboard(models.Model):
+    id = models.CharField(primary_key=True, max_length=24, default=lambda: str(uuid.uuid4().hex), editable=False)
     team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='leaderboard')
     points = models.PositiveIntegerField()
 
@@ -31,6 +38,7 @@ class Leaderboard(models.Model):
         return f"{self.team.name} - {self.points}"
 
 class Workout(models.Model):
+    id = models.CharField(primary_key=True, max_length=24, default=lambda: str(uuid.uuid4().hex), editable=False)
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='workouts')
     workout = models.CharField(max_length=100)
     reps = models.PositiveIntegerField()

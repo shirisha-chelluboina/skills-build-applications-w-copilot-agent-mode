@@ -1,61 +1,42 @@
+
 from django.core.management.base import BaseCommand
-from django.contrib.auth import get_user_model
-from django.conf import settings
-from pymongo import MongoClient
+from octofit_tracker.models import Team, UserProfile, Activity, Leaderboard, Workout
 
 class Command(BaseCommand):
     help = 'Populate the octofit_db database with test data'
 
-    def handle(self, *args, **options):
-        client = MongoClient('mongodb://localhost:27017')
-        db = client['octofit_db']
 
-        # Clear collections
-        db.users.delete_many({})
-        db.teams.delete_many({})
-        db.activities.delete_many({})
-        db.leaderboard.delete_many({})
-        db.workouts.delete_many({})
+    def handle(self, *args, **options):
+        # Delete all data, ignore errors if collections are empty
+        for model in [Activity, Workout, Leaderboard, UserProfile, Team]:
+            try:
+                model.objects.all().delete()
+            except Exception:
+                pass
 
         # Teams
-        teams = [
-            {"name": "Team Marvel", "description": "Superheroes from Marvel"},
-            {"name": "Team DC", "description": "Superheroes from DC"}
-        ]
-        db.teams.insert_many(teams)
+        marvel = Team.objects.create(name="Team Marvel", description="Superheroes from Marvel")
+        dc = Team.objects.create(name="Team DC", description="Superheroes from DC")
 
         # Users
-        users = [
-            {"name": "Iron Man", "email": "ironman@marvel.com", "team": "Team Marvel"},
-            {"name": "Captain America", "email": "cap@marvel.com", "team": "Team Marvel"},
-            {"name": "Spider-Man", "email": "spiderman@marvel.com", "team": "Team Marvel"},
-            {"name": "Batman", "email": "batman@dc.com", "team": "Team DC"},
-            {"name": "Superman", "email": "superman@dc.com", "team": "Team DC"},
-            {"name": "Wonder Woman", "email": "wonderwoman@dc.com", "team": "Team DC"}
-        ]
-        db.users.insert_many(users)
-        db.users.create_index([("email", 1)], unique=True)
+        ironman = UserProfile.objects.create(name="Iron Man", email="ironman@marvel.com", team=marvel)
+        cap = UserProfile.objects.create(name="Captain America", email="cap@marvel.com", team=marvel)
+        spiderman = UserProfile.objects.create(name="Spider-Man", email="spiderman@marvel.com", team=marvel)
+        batman = UserProfile.objects.create(name="Batman", email="batman@dc.com", team=dc)
+        superman = UserProfile.objects.create(name="Superman", email="superman@dc.com", team=dc)
+        wonderwoman = UserProfile.objects.create(name="Wonder Woman", email="wonderwoman@dc.com", team=dc)
 
         # Activities
-        activities = [
-            {"user": "Iron Man", "activity": "Running", "duration": 30},
-            {"user": "Batman", "activity": "Cycling", "duration": 45},
-            {"user": "Wonder Woman", "activity": "Swimming", "duration": 60}
-        ]
-        db.activities.insert_many(activities)
+        Activity.objects.create(user=ironman, activity="Running", duration=30)
+        Activity.objects.create(user=batman, activity="Cycling", duration=45)
+        Activity.objects.create(user=wonderwoman, activity="Swimming", duration=60)
 
         # Leaderboard
-        leaderboard = [
-            {"team": "Team Marvel", "points": 250},
-            {"team": "Team DC", "points": 300}
-        ]
-        db.leaderboard.insert_many(leaderboard)
+        Leaderboard.objects.create(team=marvel, points=250)
+        Leaderboard.objects.create(team=dc, points=300)
 
         # Workouts
-        workouts = [
-            {"user": "Spider-Man", "workout": "Push-ups", "reps": 100},
-            {"user": "Superman", "workout": "Squats", "reps": 150}
-        ]
-        db.workouts.insert_many(workouts)
+        Workout.objects.create(user=spiderman, workout="Push-ups", reps=100)
+        Workout.objects.create(user=superman, workout="Squats", reps=150)
 
-        self.stdout.write(self.style.SUCCESS('octofit_db database populated with test data.'))
+        self.stdout.write(self.style.SUCCESS('octofit_db database populated with test data using Django ORM.'))
